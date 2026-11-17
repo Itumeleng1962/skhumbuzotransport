@@ -25,13 +25,14 @@ export default function App() {
             <Route path="fleet" element={<FleetPage />} />
             <Route path="safety" element={<SafetyPage />} />
             <Route path="contact" element={<ContactPage />} />
-            <Route path="login" element={<LoginPage role="admin" />} />
-            <Route path="signup" element={<LoginPage role="parent" />} />
-            <Route path="parent/login" element={<LoginPage role="parent" />} />
-            <Route path="driver/login" element={<LoginPage role="driver" />} />
-            <Route path="admin/login" element={<LoginPage role="admin" />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
+          {/* Dedicated Full-Screen Split Auth Pages without Header / Footer */}
+          <Route path="login" element={<LoginPage role="admin" />} />
+          <Route path="signup" element={<LoginPage role="parent" />} />
+          <Route path="parent/login" element={<LoginPage role="parent" />} />
+          <Route path="driver/login" element={<LoginPage role="driver" />} />
+          <Route path="admin/login" element={<LoginPage role="admin" />} />
           <Route path="admin/*" element={<PortalPreviewPage role="admin" />} />
           <Route path="parent/*" element={<PortalPreviewPage role="parent" />} />
           <Route path="driver/*" element={<PortalPreviewPage role="driver" />} />
