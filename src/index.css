@@ -84,3 +84,23 @@ body {
   border-radius: 12px !important;
   box-shadow: 0 10px 25px rgba(0,0,0,0.3) !important;
 }
+
+/* ====================================================
+   Hide Netlify "Powered by Netlify" free-tier badge
+   The badge is injected as a fixed-position <a> tag
+   pointing to netlify.com — target every known selector
+   ==================================================== */
+[data-netlify-badge],
+.netlify-badge,
+#netlify-badge,
+a[href*="netlify.com"][style*="position:fixed"],
+a[href*="netlify.com"][style*="position: fixed"],
+a[href*="app.netlify.com"],
+img[src*="netlify-badge"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
