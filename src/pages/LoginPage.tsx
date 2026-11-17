@@ -3,197 +3,496 @@ import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { Link, useNavigate } from "react-router-dom"
 import { z } from "zod"
-import { ShieldCheck, Lock, Mail, ArrowRight, UserCheck, CheckCircle2 } from "lucide-react"
-import { PageHero } from "@/components/layout/PageHero.tsx"
-import { Container } from "@/components/layout/Section.tsx"
+import {
+  Lock,
+  Mail,
+  ArrowRight,
+  UserCheck,
+  CheckCircle2,
+  ArrowLeft,
+  Eye,
+  EyeOff,
+  User,
+  Phone,
+  Shield,
+  Sparkles,
+} from "lucide-react"
 import { Button } from "@/components/ui/button.tsx"
 import { portalLogins, type PortalRole } from "@/content/site.ts"
 import { useTheme } from "@/lib/theme.tsx"
 
-const schema = z.object({
-  email: z.string().trim().email("Enter a valid email address."),
+const loginSchema = z.object({
+  email: z.string().trim().email("Please enter a valid email address."),
   password: z.string().min(6, "Password must be at least 6 characters."),
 })
 
-type FormValues = z.infer<typeof schema>
+const signUpSchema = z.object({
+  name: z.string().trim().min(2, "Full name is required."),
+  phone: z.string().trim().min(10, "Valid phone number required."),
+  email: z.string().trim().email("Please enter a valid email address."),
+  password: z.string().min(6, "Password must be at least 6 characters."),
+  role: z.enum(["parent", "driver", "admin"]),
+})
 
-export function LoginPage({ role }: { role: PortalRole }) {
-  const portal = portalLogins[role]
+type LoginValues = z.infer<typeof loginSchema>
+type SignUpValues = z.infer<typeof signUpSchema>
+
+export function LoginPage({ role: initialRole }: { role: PortalRole }) {
+  const [currentRole, setCurrentRole] = useState<PortalRole>(initialRole)
+  const [mode, setMode] = useState<"login" | "signup">("login")
+  const [showPassword, setShowPassword] = useState(false)
+  const [signedIn, setSignedIn] = useState(false)
+  const portal = portalLogins[currentRole]
   const navigate = useNavigate()
   const { theme } = useTheme()
   const isDark = theme === "black-gold"
 
-  const [signedIn, setSignedIn] = useState(false)
   const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<FormValues>({
-    resolver: zodResolver(schema),
-    defaultValues: { email: role === "admin" ? "admin@sitholetransport.co.za" : role === "driver" ? "driver.sipho@sitholetransport.co.za" : "parent.itumeleng@gmail.com", password: "••••••••" },
+    register: registerLogin,
+    handleSubmit: handleLoginSubmit,
+    formState: { errors: loginErrors },
+  } = useForm<LoginValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email:
+        currentRole === "admin"
+          ? "admin@sitholetransport.co.za"
+          : currentRole === "driver"
+          ? "sipho.driver@sitholetransport.co.za"
+          : "itumeleng.parent@gmail.com",
+      password: "password123",
+    },
+  })
+
+  const {
+    register: registerSignUp,
+    handleSubmit: handleSignUpSubmit,
+    formState: { errors: signUpErrors },
+  } = useForm<SignUpValues>({
+    resolver: zodResolver(signUpSchema),
+    defaultValues: {
+      name: "",
+      phone: "",
+      email: "",
+      password: "",
+      role: currentRole,
+    },
   })
 
   useEffect(() => {
-    document.title = `${portal.title} · Skhumbuzo Sithole Transport`
-  }, [portal.title])
+    document.title = `${mode === "login" ? "Sign In" : "Sign Up"} · Skhumbuzo Sithole Transport`
+  }, [mode, currentRole])
 
-  const onSubmit = () => {
+  const onLogin = () => {
     setSignedIn(true)
     setTimeout(() => {
-      navigate(`/${role}`)
-    }, 1000)
+      navigate(`/${currentRole}`)
+    }, 1200)
   }
 
-  // Visual image preview depending on role
-  const roleImage = role === "parent" 
-    ? "/images/sa-children-happy.jpg" 
-    : role === "driver" 
-    ? "/images/sa-driver-portrait.jpg" 
-    : "/images/hero-quantum-bg.jpg"
+  const onSignUp = () => {
+    setSignedIn(true)
+    setTimeout(() => {
+      navigate(`/${currentRole}`)
+    }, 1200)
+  }
+
+  // Dynamic image matching the role
+  const roleImage =
+    currentRole === "parent"
+      ? "/images/sa-children-happy.jpg"
+      : currentRole === "driver"
+      ? "/images/sa-driver-portrait.jpg"
+      : "/images/hero-quantum-bg.jpg"
 
   return (
-    <>
-      <PageHero eyebrow="Secure Access" title={portal.title} text={portal.intro} />
-      <section className={`py-14 sm:py-20 transition-colors ${isDark ? "bg-[#0B0B0E]" : "bg-[#f8fafc]"}`}>
-        <Container className="grid gap-10 lg:grid-cols-2 items-center">
-          
-          {/* Form Card */}
-          <div className={`rounded-3xl border p-6 sm:p-10 shadow-2xl relative overflow-hidden ${
-            isDark ? "bg-[#141419] border-[#262630] text-white" : "bg-white border-slate-200 text-slate-900"
+    <div className={`min-h-screen grid grid-cols-1 lg:grid-cols-2 font-sans transition-colors ${
+      isDark ? "bg-[#0B0B0E] text-slate-100" : "bg-[#F3F4F8] text-slate-800"
+    }`}>
+      
+      {/* 
+        ================================================================
+        LEFT HALF: Dramatic Full Picture with Golden Overlay & Brand Logo
+        ================================================================
+      */}
+      <div className="relative hidden lg:flex flex-col justify-between p-12 overflow-hidden min-h-screen bg-black">
+        {/* Background Image */}
+        <img
+          src={roleImage}
+          alt="Skhumbuzo Sithole Transport Vehicle and Community"
+          className="absolute inset-0 h-full w-full object-cover object-center scale-105 transition-transform duration-1000 ease-out"
+        />
+
+        {/* Ambient Dark-to-Gold Luxury Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/30" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-transparent to-black/40" />
+        
+        {/* Top Floating Badge */}
+        <div className="relative z-10 flex items-center justify-between">
+          <Link to="/" className="inline-block group">
+            <img
+              src="/images/logo.png"
+              alt="Skhumbuzo Sithole Transport"
+              className="h-14 w-auto object-contain transition group-hover:scale-105 drop-shadow-2xl"
+            />
+          </Link>
+          <span className="rounded-full bg-black/60 border border-[#D4AF37]/50 px-3.5 py-1 text-xs font-bold text-[#F5C542] backdrop-blur-md flex items-center gap-1.5 shadow-lg">
+            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+            Johannesburg Live Network
+          </span>
+        </div>
+
+        {/* Center / Bottom Slogan Typography */}
+        <div className="relative z-10 space-y-4 max-w-lg">
+          <div className="inline-flex items-center gap-2 rounded-full bg-[#D4AF37]/20 border border-[#D4AF37]/40 px-3.5 py-1 text-xs font-extrabold text-[#F5C542] backdrop-blur-md">
+            <Sparkles size={14} />
+            <span>Smart School Transport for a Safer South Africa</span>
+          </div>
+
+          <h1 className="text-4xl xl:text-5xl font-black text-white leading-tight drop-shadow-md">
+            Safe Journeys, <br />
+            <span className="bg-gradient-to-r from-[#FDE08B] via-[#F5C542] to-[#D4AF37] bg-clip-text text-transparent">
+              Brighter Futures.
+            </span>
+          </h1>
+
+          <p className="text-sm text-slate-300 leading-relaxed drop-shadow-sm">
+            Empowering South African schools, guardians, and vetted drivers with real-time telemetry, instant notifications, and complete passenger visibility.
+          </p>
+
+          {/* Social Proof / Security Badge */}
+          <div className="pt-4 flex items-center gap-6 border-t border-white/15 text-xs text-slate-300">
+            <div className="flex items-center gap-2">
+              <Shield size={16} className="text-[#F5C542]" />
+              <span>POPIA Certified</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle2 size={16} className="text-emerald-400" />
+              <span>256-Bit SSL Encrypted</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 
+        ================================================================
+        RIGHT HALF: Sign In / Sign Up Form Card Container
+        ================================================================
+      */}
+      <div className={`flex flex-col justify-center px-6 py-12 sm:px-12 lg:px-16 xl:px-20 min-h-screen ${
+        isDark ? "bg-[#0E0E12]" : "bg-white"
+      }`}>
+        <div className="mx-auto w-full max-w-md space-y-6">
+
+          {/* Back Button */}
+          <div className="flex items-center justify-between">
+            <Link
+              to="/"
+              className={`inline-flex items-center gap-1.5 text-xs font-bold transition rounded-full px-3 py-1.5 border ${
+                isDark
+                  ? "border-[#262630] bg-[#141419] text-slate-400 hover:text-white hover:border-[#D4AF37]"
+                  : "border-slate-200 bg-slate-50 text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              <ArrowLeft size={14} /> Back to Home
+            </Link>
+
+            {/* Mobile Brand Logo */}
+            <Link to="/" className="lg:hidden">
+              <img src="/images/logo.png" alt="Logo" className="h-9 w-auto" />
+            </Link>
+          </div>
+
+          {/* Header Title */}
+          <div>
+            <h2 className={`text-3xl font-black tracking-tight ${isDark ? "text-white" : "text-slate-900"}`}>
+              {mode === "login" ? "Sign In" : "Create Account"}
+            </h2>
+            <p className="text-xs text-slate-400 mt-1">
+              {mode === "login"
+                ? `Access your ${portal.title.toLowerCase()} and real-time tracking console.`
+                : "Register as a guardian or driver for certified school transport."}
+            </p>
+          </div>
+
+          {/* Role Pill Switcher */}
+          <div className={`grid grid-cols-3 p-1 rounded-2xl border text-xs font-bold ${
+            isDark ? "bg-[#141419] border-[#262630]" : "bg-slate-100 border-slate-200"
           }`}>
-            <div className="absolute top-0 right-0 w-36 h-36 bg-[#D4AF37]/10 rounded-full blur-2xl pointer-events-none" />
+            {(["parent", "driver", "admin"] as PortalRole[]).map((r) => (
+              <button
+                key={r}
+                type="button"
+                onClick={() => setCurrentRole(r)}
+                className={`py-2 px-3 rounded-xl transition capitalize text-center ${
+                  currentRole === r
+                    ? "bg-gradient-to-r from-[#F5C542] to-[#D4AF37] text-black shadow-md font-black"
+                    : isDark
+                    ? "text-slate-400 hover:text-white"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                {r === "parent" ? "Guardian" : r === "driver" ? "Driver" : "Admin"}
+              </button>
+            ))}
+          </div>
 
-            <div className="flex items-center gap-3 pb-6 border-b border-white/10">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[#F5C542] to-[#D4AF37] text-black font-black shadow-md">
-                <Lock size={22} />
+          {/* Success State */}
+          {signedIn ? (
+            <div className="py-12 text-center space-y-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-6">
+              <div className="h-16 w-16 rounded-full bg-emerald-500/20 text-emerald-400 mx-auto flex items-center justify-center animate-bounce">
+                <CheckCircle2 size={36} />
               </div>
+              <h3 className={`text-2xl font-black ${isDark ? "text-white" : "text-slate-900"}`}>
+                Welcome, {currentRole.toUpperCase()}!
+              </h3>
+              <p className="text-xs text-slate-400">Authenticating verified credentials... Entering console.</p>
+            </div>
+          ) : mode === "login" ? (
+            /* 
+              ============================================================
+              LOGIN FORM
+              ============================================================
+            */
+            <form onSubmit={handleLoginSubmit(onLogin)} className="space-y-4">
               <div>
-                <h2 className="text-xl font-extrabold">{portal.title} Sign In</h2>
-                <p className="text-xs text-slate-400">POPIA Verified Session Authentication</p>
-              </div>
-            </div>
-
-            {signedIn ? (
-              <div className="py-12 text-center space-y-4">
-                <div className="h-16 w-16 rounded-full bg-emerald-500/20 text-emerald-400 mx-auto flex items-center justify-center animate-bounce">
-                  <CheckCircle2 size={36} />
+                <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                  Email Address
+                </label>
+                <div className="relative">
+                  <Mail size={16} className="absolute left-3.5 top-3.5 text-slate-500" />
+                  <input
+                    type="email"
+                    {...registerLogin("email")}
+                    className={`w-full rounded-xl border pl-10 pr-3.5 py-2.5 text-xs outline-hidden transition ${
+                      isDark
+                        ? "bg-[#141419] border-[#262630] text-white focus:border-[#D4AF37]"
+                        : "bg-white border-slate-300 text-slate-900 focus:border-[#D4AF37]"
+                    }`}
+                  />
                 </div>
-                <h3 className="text-2xl font-black text-white">Credentials Verified</h3>
-                <p className="text-sm text-slate-400">Redirecting to live {portal.title.toLowerCase()}...</p>
+                {loginErrors.email && (
+                  <span className="text-[11px] text-red-400 mt-1 block">{loginErrors.email.message}</span>
+                )}
               </div>
-            ) : (
-              <form className="mt-6 space-y-4" noValidate onSubmit={handleSubmit(onSubmit)}>
-                <label className="block">
-                  <span className="mb-1.5 block text-xs font-semibold text-slate-300">Authorized Email Address</span>
-                  <div className="relative">
-                    <Mail size={16} className="absolute left-3.5 top-3.5 text-slate-500" />
-                    <input
-                      type="email"
-                      autoComplete="username"
-                      className="w-full rounded-xl border border-slate-700 bg-[#18181F] pl-10 pr-3.5 py-3 text-sm text-white outline-hidden focus:border-[#D4AF37]"
-                      {...register("email")}
-                    />
-                  </div>
-                  {errors.email ? <span className="mt-1 block text-xs text-red-400">{errors.email.message}</span> : null}
-                </label>
 
-                <label className="block">
-                  <span className="mb-1.5 block text-xs font-semibold text-slate-300">Password / PIN</span>
-                  <div className="relative">
-                    <Lock size={16} className="absolute left-3.5 top-3.5 text-slate-500" />
-                    <input
-                      type="password"
-                      autoComplete="current-password"
-                      className="w-full rounded-xl border border-slate-700 bg-[#18181F] pl-10 pr-3.5 py-3 text-sm text-white outline-hidden focus:border-[#D4AF37]"
-                      {...register("password")}
-                    />
-                  </div>
-                  {errors.password ? <span className="mt-1 block text-xs text-red-400">{errors.password.message}</span> : null}
-                </label>
-
-                <div className="flex items-center justify-between text-xs text-slate-400 pt-1">
-                  <span className="flex items-center gap-1 text-emerald-400 font-semibold">
-                    <ShieldCheck size={14} /> 256-bit Encryption
-                  </span>
-                  <Link to="/contact" className="hover:text-[#F5C542] transition">
-                    Need Help Signing In?
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-bold text-slate-300">Password</label>
+                  <Link to="/contact" className="text-[11px] text-[#F5C542] hover:underline">
+                    Forgot Password?
                   </Link>
                 </div>
-
-                <Button
-                  className="w-full mt-2 rounded-xl bg-gradient-to-r from-[#F5C542] via-[#D4AF37] to-[#AA820A] py-3.5 text-sm font-extrabold text-black hover:brightness-110 shadow-xl transition"
-                  type="submit"
-                >
-                  Enter Portal <ArrowRight size={16} className="ml-2" />
-                </Button>
-
-                <div className="pt-4 border-t border-white/10 text-center">
-                  <Link
-                    to={`/${role}`}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-[#F5C542] hover:underline"
+                <div className="relative">
+                  <Lock size={16} className="absolute left-3.5 top-3.5 text-slate-500" />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    {...registerLogin("password")}
+                    className={`w-full rounded-xl border pl-10 pr-10 py-2.5 text-xs outline-hidden transition ${
+                      isDark
+                        ? "bg-[#141419] border-[#262630] text-white focus:border-[#D4AF37]"
+                        : "bg-white border-slate-300 text-slate-900 focus:border-[#D4AF37]"
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-3 text-slate-400 hover:text-white"
                   >
-                    Quick Preview Without Login →
-                  </Link>
+                    {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
                 </div>
-              </form>
-            )}
-          </div>
+                {loginErrors.password && (
+                  <span className="text-[11px] text-red-400 mt-1 block">{loginErrors.password.message}</span>
+                )}
+              </div>
 
-          {/* Right: Picture & Feature Showcase */}
-          <div className="space-y-6">
-            <div className={`overflow-hidden rounded-3xl border shadow-2xl ${
-              isDark ? "bg-[#141419] border-[#262630] text-white" : "bg-white border-slate-200 text-slate-800"
-            }`}>
-              <div className="relative h-64 sm:h-72 overflow-hidden">
-                <img
-                  src={roleImage}
-                  alt={`${portal.title} preview`}
-                  className="h-full w-full object-cover object-center"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#141419] via-[#141419]/40 to-transparent" />
-                <div className="absolute bottom-4 left-6 right-6">
-                  <span className="rounded-full bg-[#D4AF37] px-3 py-1 text-[11px] font-black text-black">
-                    {role === "admin" ? "Operations Desk" : role === "driver" ? "Driver Console" : "Guardian Mobile Portal"}
-                  </span>
-                  <h3 className="mt-2 text-xl font-black text-white">
-                    {role === "admin" 
-                      ? "Real-Time Fleet Oversight Across Gauteng" 
-                      : role === "driver" 
-                      ? "Hands-Free Route Navigation & Passenger Manifest" 
-                      : "Peace of Mind Every Single Morning"}
-                  </h3>
+              <Button
+                type="submit"
+                className="w-full rounded-xl bg-gradient-to-r from-[#F5C542] via-[#D4AF37] to-[#AA820A] py-3 text-xs font-black text-black hover:brightness-110 shadow-lg shadow-[#D4AF37]/20 transition flex items-center justify-center gap-2"
+              >
+                Sign In to {currentRole === "parent" ? "Parent App" : currentRole === "driver" ? "Driver App" : "Operations Desk"} <ArrowRight size={14} />
+              </Button>
+
+              {/* Demo Account Box */}
+              <div className={`p-3.5 rounded-xl border text-xs text-center space-y-1 ${
+                isDark ? "bg-[#141419] border-[#262630]" : "bg-slate-50 border-slate-200"
+              }`}>
+                <div className="font-bold text-[#F5C542]">Pre-Configured Demo Account</div>
+                <p className="text-[11px] text-slate-400">
+                  Clicking "Sign In" will immediately load the live {currentRole} interactive dashboard.
+                </p>
+                <Link
+                  to={`/${currentRole}`}
+                  className="inline-block text-[11px] font-extrabold text-emerald-400 hover:underline pt-1"
+                >
+                  Or jump directly to {currentRole} portal →
+                </Link>
+              </div>
+
+              {/* Mode Switcher */}
+              <div className="text-center text-xs text-slate-400 pt-2">
+                Don't have an account yet?{" "}
+                <button
+                  type="button"
+                  onClick={() => setMode("signup")}
+                  className="font-bold text-[#F5C542] hover:underline"
+                >
+                  Create an account
+                </button>
+              </div>
+            </form>
+          ) : (
+            /* 
+              ============================================================
+              SIGN UP FORM
+              ============================================================
+            */
+            <form onSubmit={handleSignUpSubmit(onSignUp)} className="space-y-3.5">
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1">
+                  Full Legal Name *
+                </label>
+                <div className="relative">
+                  <User size={16} className="absolute left-3.5 top-3.5 text-slate-500" />
+                  <input
+                    type="text"
+                    placeholder="e.g. Itumeleng Sithole"
+                    {...registerSignUp("name")}
+                    className={`w-full rounded-xl border pl-10 pr-3.5 py-2.5 text-xs outline-hidden transition ${
+                      isDark
+                        ? "bg-[#141419] border-[#262630] text-white focus:border-[#D4AF37]"
+                        : "bg-white border-slate-300 text-slate-900 focus:border-[#D4AF37]"
+                    }`}
+                  />
+                </div>
+                {signUpErrors.name && (
+                  <span className="text-[11px] text-red-400 mt-0.5 block">{signUpErrors.name.message}</span>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">
+                    Mobile Phone *
+                  </label>
+                  <div className="relative">
+                    <Phone size={16} className="absolute left-3.5 top-3.5 text-slate-500" />
+                    <input
+                      type="text"
+                      placeholder="082 123 4567"
+                      {...registerSignUp("phone")}
+                      className={`w-full rounded-xl border pl-10 pr-3.5 py-2.5 text-xs outline-hidden transition ${
+                        isDark
+                          ? "bg-[#141419] border-[#262630] text-white focus:border-[#D4AF37]"
+                          : "bg-white border-slate-300 text-slate-900 focus:border-[#D4AF37]"
+                      }`}
+                    />
+                  </div>
+                  {signUpErrors.phone && (
+                    <span className="text-[11px] text-red-400 mt-0.5 block">{signUpErrors.phone.message}</span>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">
+                    Account Role
+                  </label>
+                  <select
+                    {...registerSignUp("role")}
+                    value={currentRole}
+                    onChange={(e) => setCurrentRole(e.target.value as PortalRole)}
+                    className={`w-full rounded-xl border px-3 py-2.5 text-xs outline-hidden transition ${
+                      isDark
+                        ? "bg-[#141419] border-[#262630] text-white focus:border-[#D4AF37]"
+                        : "bg-white border-slate-300 text-slate-900 focus:border-[#D4AF37]"
+                    }`}
+                  >
+                    <option value="parent">Parent / Guardian</option>
+                    <option value="driver">Certified Driver</option>
+                    <option value="admin">Operations Desk</option>
+                  </select>
                 </div>
               </div>
 
-              <div className="p-6 space-y-3 text-xs text-slate-400">
-                <div className="flex items-center gap-2">
-                  <UserCheck size={16} className="text-[#F5C542]" />
-                  <span>Verified credentials managed under South African POPIA regulations.</span>
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1">
+                  Email Address *
+                </label>
+                <div className="relative">
+                  <Mail size={16} className="absolute left-3.5 top-3.5 text-slate-500" />
+                  <input
+                    type="email"
+                    placeholder="parent@domain.co.za"
+                    {...registerSignUp("email")}
+                    className={`w-full rounded-xl border pl-10 pr-3.5 py-2.5 text-xs outline-hidden transition ${
+                      isDark
+                        ? "bg-[#141419] border-[#262630] text-white focus:border-[#D4AF37]"
+                        : "bg-white border-slate-300 text-slate-900 focus:border-[#D4AF37]"
+                    }`}
+                  />
                 </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 size={16} className="text-[#F5C542]" />
-                  <span>Real-time GPS coordinates active only during designated route trips.</span>
-                </div>
+                {signUpErrors.email && (
+                  <span className="text-[11px] text-red-400 mt-0.5 block">{signUpErrors.email.message}</span>
+                )}
               </div>
-            </div>
 
-            {/* Role Switcher Pill Bar */}
-            <div className="flex items-center justify-center gap-2 text-xs">
-              <span className="text-slate-400">Switch Sign In:</span>
-              <Link to="/parent/login" className={`px-3 py-1 rounded-full font-bold ${role === "parent" ? "bg-[#D4AF37] text-black" : "bg-[#18181F] text-slate-300"}`}>
-                Parent
-              </Link>
-              <Link to="/driver/login" className={`px-3 py-1 rounded-full font-bold ${role === "driver" ? "bg-[#D4AF37] text-black" : "bg-[#18181F] text-slate-300"}`}>
-                Driver
-              </Link>
-              <Link to="/admin/login" className={`px-3 py-1 rounded-full font-bold ${role === "admin" ? "bg-[#D4AF37] text-black" : "bg-[#18181F] text-slate-300"}`}>
-                Admin
-              </Link>
-            </div>
-          </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1">
+                  Create Password *
+                </label>
+                <div className="relative">
+                  <Lock size={16} className="absolute left-3.5 top-3.5 text-slate-500" />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="At least 6 characters"
+                    {...registerSignUp("password")}
+                    className={`w-full rounded-xl border pl-10 pr-10 py-2.5 text-xs outline-hidden transition ${
+                      isDark
+                        ? "bg-[#141419] border-[#262630] text-white focus:border-[#D4AF37]"
+                        : "bg-white border-slate-300 text-slate-900 focus:border-[#D4AF37]"
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-3 text-slate-400 hover:text-white"
+                  >
+                    {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
+                {signUpErrors.password && (
+                  <span className="text-[11px] text-red-400 mt-0.5 block">{signUpErrors.password.message}</span>
+                )}
+              </div>
 
-        </Container>
-      </section>
-    </>
+              <div className="text-[10px] text-slate-400">
+                By registering, you consent to POPIA-compliant child transport communication via SMS and app alerts.
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full rounded-xl bg-gradient-to-r from-[#F5C542] via-[#D4AF37] to-[#AA820A] py-3 text-xs font-black text-black hover:brightness-110 shadow-lg shadow-[#D4AF37]/20 transition flex items-center justify-center gap-2"
+              >
+                Create Account <UserCheck size={14} />
+              </Button>
+
+              <div className="text-center text-xs text-slate-400 pt-2">
+                Already registered?{" "}
+                <button
+                  type="button"
+                  onClick={() => setMode("login")}
+                  className="font-bold text-[#F5C542] hover:underline"
+                >
+                  Sign in here
+                </button>
+              </div>
+            </form>
+          )}
+
+        </div>
+      </div>
+
+    </div>
   )
 }

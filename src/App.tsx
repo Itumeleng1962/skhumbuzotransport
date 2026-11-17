@@ -25,6 +25,8 @@ export default function App() {
             <Route path="fleet" element={<FleetPage />} />
             <Route path="safety" element={<SafetyPage />} />
             <Route path="contact" element={<ContactPage />} />
+            <Route path="login" element={<LoginPage role="admin" />} />
+            <Route path="signup" element={<LoginPage role="parent" />} />
             <Route path="parent/login" element={<LoginPage role="parent" />} />
             <Route path="driver/login" element={<LoginPage role="driver" />} />
             <Route path="admin/login" element={<LoginPage role="admin" />} />
