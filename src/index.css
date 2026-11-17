@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  
+  /* Luxury Black & Gold Palette */
+  --color-black-main: #0B0B0E;
+  --color-black-surface: #121216;
+  --color-black-card: #18181F;
+  --color-black-border: #262630;
+  
+  --color-gold-light: #FDE08B;
+  --color-gold-main: #D4AF37;
+  --color-gold-vibrant: #F5C542;
+  --color-gold-deep: #AA820A;
+  --color-gold-hover: #E5BE4A;
+  
+  --color-line: #262630;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: #0B0B0E;
+  color: #F3F4F6;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: #D4AF37;
+  color: #0B0B0E;
+}
+
+:focus-visible {
+  outline: 2px solid #D4AF37;
+  outline-offset: 3px;
+}
+
+/* Animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes pulseSlow {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.03); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-pulse-slow {
+  animation: pulseSlow 3s ease-in-out infinite;
+}
+
+@keyframes beam {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+.animate-beam {
+  animation: beam 3.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Leaflet Fixes */
+.leaflet-container {
+  font-family: inherit;
+  z-index: 10 !important;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 12px !important;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3) !important;
+}
