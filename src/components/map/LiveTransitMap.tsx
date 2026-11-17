@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react"
 import L from "leaflet"
 import "leaflet/dist/leaflet.css"
+import { useLocationTracking } from "@/lib/location.tsx"
 
 interface StopPoint {
   name: string
@@ -28,6 +29,7 @@ export function LiveTransitMap({
   routeCoordinates = [],
   height = "360px",
   interactive = true,
+  showUserMarker = true,
 }: {
   center?: [number, number]
   zoom?: number
@@ -36,9 +38,13 @@ export function LiveTransitMap({
   routeCoordinates?: [number, number][]
   height?: string
   interactive?: boolean
+  showUserMarker?: boolean
 }) {
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<L.Map | null>(null)
+  const { location, isTracking } = useLocationTracking()
+
+  const mapCenter: [number, number] = location && isTracking ? [location.lat, location.lng] : center
 
   useEffect(() => {
     if (!mapContainerRef.current) return
@@ -51,7 +57,7 @@ export function LiveTransitMap({
 
     // Initialize Leaflet map
     const map = L.map(mapContainerRef.current, {
-      center,
+      center: mapCenter,
       zoom,
       zoomControl: interactive,
       dragging: interactive,
@@ -175,13 +181,56 @@ export function LiveTransitMap({
       `)
     })
 
+    // If live user location is available and tracking is on, place real live pulse marker
+    if (showUserMarker && location && isTracking) {
+      const userMarkerIcon = L.divIcon({
+        className: "custom-user-gps-marker",
+        html: `
+          <div style="position: relative; display: flex; flex-direction: column; align-items: center;">
+            <div style="
+              width: 22px;
+              height: 22px;
+              background: #2563EB;
+              border: 3px solid #FFFFFF;
+              border-radius: 50%;
+              box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.35);
+              animation: pulse 1.8s infinite;
+            "></div>
+            <div style="
+              background: #1E293B;
+              color: #FFFFFF;
+              border-radius: 4px;
+              padding: 2px 5px;
+              font-size: 8px;
+              font-weight: 800;
+              white-space: nowrap;
+              margin-top: 2px;
+            ">
+              You (Live)
+            </div>
+          </div>
+        `,
+        iconSize: [24, 40],
+        iconAnchor: [12, 12],
+      })
+
+      const userMarker = L.marker([location.lat, location.lng], { icon: userMarkerIcon }).addTo(map)
+      userMarker.bindPopup(`
+        <div style="font-family: inherit; padding: 2px;">
+          <strong style="color: #2563EB; font-size: 12px;">Your Live GPS Location</strong>
+          <div style="color: #64748B; font-size: 10px; margin-top: 2px;">Accuracy: ~${Math.round(location.accuracy || 15)}m</div>
+          <div style="color: #10B981; font-size: 10px; font-weight: bold;">● Telemetry Active</div>
+        </div>
+      `)
+    }
+
     return () => {
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove()
         mapInstanceRef.current = null
       }
     }
-  }, [center, zoom, vehicles, stops, routeCoordinates, interactive])
+  }, [mapCenter, zoom, vehicles, stops, routeCoordinates, interactive, location, isTracking, showUserMarker])
 
   return (
     <div

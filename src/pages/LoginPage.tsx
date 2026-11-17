@@ -16,10 +16,14 @@ import {
   Phone,
   Shield,
   Sparkles,
+  MapPin,
+  Navigation,
+  Loader2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button.tsx"
 import { portalLogins, type PortalRole } from "@/content/site.ts"
 import { useTheme } from "@/lib/theme.tsx"
+import { useLocationTracking } from "@/lib/location.tsx"
 
 const loginSchema = z.object({
   email: z.string().trim().email("Please enter a valid email address."),
@@ -42,6 +46,9 @@ export function LoginPage({ role: initialRole }: { role: PortalRole }) {
   const [mode, setMode] = useState<"login" | "signup">("login")
   const [showPassword, setShowPassword] = useState(false)
   const [signedIn, setSignedIn] = useState(false)
+  const [requestingLocation, setRequestingLocation] = useState(false)
+  const [locationVerified, setLocationVerified] = useState(false)
+  const { location, requestLiveLocation } = useLocationTracking()
   const portal = portalLogins[currentRole]
   const navigate = useNavigate()
   const { theme } = useTheme()
@@ -83,15 +90,28 @@ export function LoginPage({ role: initialRole }: { role: PortalRole }) {
     document.title = `${mode === "login" ? "Sign In" : "Sign Up"} · Skhumbuzo Sithole Transport`
   }, [mode, currentRole])
 
-  const onLogin = () => {
+  const handleLocationRequest = async () => {
+    setRequestingLocation(true)
+    const loc = await requestLiveLocation()
+    setRequestingLocation(false)
+    if (loc) {
+      setLocationVerified(true)
+    }
+  }
+
+  const onLogin = async () => {
     setSignedIn(true)
+    // Automatically trigger browser live location prompt upon sign-in
+    await requestLiveLocation()
     setTimeout(() => {
       navigate(`/${currentRole}`)
     }, 1200)
   }
 
-  const onSignUp = () => {
+  const onSignUp = async () => {
     setSignedIn(true)
+    // Automatically trigger browser live location prompt upon sign-up
+    await requestLiveLocation()
     setTimeout(() => {
       navigate(`/${currentRole}`)
     }, 1200)
@@ -213,6 +233,57 @@ export function LoginPage({ role: initialRole }: { role: PortalRole }) {
                 ? `Access your ${portal.title.toLowerCase()} and real-time tracking console.`
                 : "Register as a guardian or driver for certified school transport."}
             </p>
+          </div>
+
+          {/* Interactive Live Geolocation Tracking Permission Prompt Box */}
+          <div className={`p-4 rounded-2xl border transition-all ${
+            locationVerified || location
+              ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
+              : isDark
+              ? "bg-gradient-to-r from-[#18181F] to-[#141419] border-[#D4AF37]/40 text-white"
+              : "bg-blue-50/80 border-blue-200 text-slate-800"
+          }`}>
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-2.5">
+                <div className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-xl font-bold ${
+                  locationVerified || location
+                    ? "bg-emerald-500/20 text-emerald-400"
+                    : "bg-[#D4AF37]/20 text-[#F5C542]"
+                }`}>
+                  <Navigation size={15} className={requestingLocation ? "animate-spin" : ""} />
+                </div>
+                <div>
+                  <div className="text-xs font-black flex items-center gap-1.5">
+                    {locationVerified || location ? "Live Location Verified & Tracking" : "Enable Live Location Tracking"}
+                    <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">
+                    {locationVerified || location
+                      ? `Active: ${location?.lat.toFixed(4)}, ${location?.lng.toFixed(4)} · Ready for live map tracking`
+                      : "Required for student curb pickup telemetry, driver routing, and safe transit radar."}
+                  </p>
+                </div>
+              </div>
+
+              {!locationVerified && (
+                <button
+                  type="button"
+                  onClick={handleLocationRequest}
+                  disabled={requestingLocation}
+                  className="shrink-0 rounded-xl bg-gradient-to-r from-[#F5C542] to-[#D4AF37] text-black font-extrabold text-[11px] px-3 py-1.5 shadow-md hover:brightness-105 transition flex items-center gap-1 disabled:opacity-50"
+                >
+                  {requestingLocation ? (
+                    <>
+                      <Loader2 size={12} className="animate-spin" /> Verifying...
+                    </>
+                  ) : (
+                    <>
+                      <MapPin size={12} /> Allow
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Role Pill Switcher */}

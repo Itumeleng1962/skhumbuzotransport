@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { BrowserRouter, Route, Routes } from "react-router-dom"
+import { LocationProvider } from "@/lib/location.tsx"
 import { PublicLayout } from "@/components/layout/PublicLayout.tsx"
 import { AboutPage } from "@/pages/AboutPage.tsx"
 import { ContactPage } from "@/pages/ContactPage.tsx"
@@ -16,8 +17,9 @@ const queryClient = new QueryClient()
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Routes>
+      <LocationProvider>
+        <BrowserRouter>
+          <Routes>
           <Route element={<PublicLayout />}>
             <Route index element={<HomePage />} />
             <Route path="about" element={<AboutPage />} />
@@ -38,6 +40,7 @@ export default function App() {
           <Route path="driver/*" element={<PortalPreviewPage role="driver" />} />
         </Routes>
       </BrowserRouter>
-    </QueryClientProvider>
+    </LocationProvider>
+  </QueryClientProvider>
   )
 }
